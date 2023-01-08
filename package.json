@@ -1,0 +1,12 @@
+{
+  "name": "digital-space",
+  "version": "1.0.0",
+  "description": "Fuel simulation app",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hamed Zeraatpisheh",
+  "license": "ISC"
+}
