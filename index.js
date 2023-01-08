@@ -1,20 +1,8 @@
+const { totalFuelTransactions, totalCarsInQueue, carTypes, fuelPumps } = require('./settings');
+
 let totalFuelConsumed = 0;
 let totalVehiclesServed = 0;
 let totalVehiclesLeftWithoutService = 0;
-let totalCarsInQueue = [];
-
-const carTypes = [
-    { type: "Car", tankCapacity: 10, fuelType: ["Diesel", "LPG", "Unleaded"] },
-    { type: "Van", tankCapacity: 80, fuelType: ["Diesel", "LPG"] },
-    { type: "HGV", tankCapacity: 150, fuelType: ["Diesel"] },
-]
-const totalFuelTransactions = []; // (DateTime, fuel type, number of litres dispensed)
-
-const fuelPumps = {
-    lane1: [{ Pump: 3, inUse: false }, { Pump: 2, inUse: false }, { Pump: 1, inUse: false }],
-    lane2: [{ Pump: 6, inUse: false }, { Pump: 5, inUse: false }, { Pump: 4, inUse: false }],
-    lane3: [{ Pump: 9, inUse: false }, { Pump: 8, inUse: false }, { Pump: 7, inUse: false }],
-};
 
 const appendTotalTransaction = (fuelType, numberOfLitresDispensed) => {
     const transactionDateTime = new Date().toISOString();
@@ -51,6 +39,7 @@ const fuelVehicle = (laneNumber, pumpIndex) => {
     const refuelPace = 1000;
 
     if (totalCarsInQueue.length > 0) {
+        let totalLitersDispensedPerTransaction = 0;
         const currentCarOutOfQueue = totalCarsInQueue.shift(); // reduce car numbers in queue by 1 
         console.log(`Servicing vehicle: ${currentCarOutOfQueue.type}, ${currentCarOutOfQueue.fuelType} in ${laneNumber}`);
 
@@ -58,11 +47,13 @@ const fuelVehicle = (laneNumber, pumpIndex) => {
             if (currentCarOutOfQueue.currentFuelInTank < currentCarOutOfQueue.tankCapacity) {
                 currentCarOutOfQueue.currentFuelInTank += 1; // 1.5 litres/second
                 totalFuelConsumed += 1.5;
+                totalLitersDispensedPerTransaction += 1.5
                 console.log(`${currentCarOutOfQueue.type}, ${currentCarOutOfQueue.fuelType} fuel in tank:`, currentCarOutOfQueue.currentFuelInTank);
 
             } else {
                 fuelPumps[laneNumber][pumpIndex].inUse = false;
                 totalVehiclesServed += 1;
+                appendTotalTransaction(currentCarOutOfQueue.fuelType, totalLitersDispensedPerTransaction);
                 clearInterval(interval);
                 console.log(`Vehicle: ${currentCarOutOfQueue.type}, ${currentCarOutOfQueue.fuelType} re-fueled and left the station.`);
             }
@@ -136,12 +127,16 @@ const keypress = async () => {
 (async () => {
     console.log('program still running, press any key to stop execution');
     await keypress();
-    console.log('----------------------');
+    console.log('------------------------');
     console.log('Petrol station report:');
-    console.log('----------------------');
+    console.log('------------------------');
     console.log(`Total vehicles serviced: ${totalVehiclesServed}`);
     console.log(`Total vehicles left without service: ${totalVehiclesLeftWithoutService}`);
     console.log(`Total litres of fuel consumed: ${totalFuelConsumed}`);
+    console.log('------------------------');
+    console.log('List of all transactions:')
+    console.log('------------------------');
+    console.log(`${JSON.stringify(totalFuelTransactions, null, 2)}`);
 
 })().then(process.exit)
 
