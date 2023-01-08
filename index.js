@@ -4,6 +4,11 @@ let totalFuelConsumed = 0;
 let totalVehiclesServed = 0;
 let totalVehiclesLeftWithoutService = 0;
 
+/**
+ *
+ * @param {*} fuelType e.g. "Diesel", "LPG", "Unleaded"
+ * @param {*} numberOfLitresDispensed number of litres dispensed per transaction
+ */
 const appendTotalTransaction = (fuelType, numberOfLitresDispensed) => {
     const transactionDateTime = new Date().toISOString();
 
@@ -17,26 +22,12 @@ const appendTotalTransaction = (fuelType, numberOfLitresDispensed) => {
 }
 
 /**
- * 
- * @param {*} laneNumber can be lane1, lane2 or lane3
- * @returns true if vehicle finds a free pump in lane otherwise returns false
- */
-const checkAndUseEmptyPumpInLane = (laneNumber) => {
-    for (let i = 0; i < fuelPumps[laneNumber].length; i++) {
-        if (!fuelPumps[laneNumber][i].inUse) {
-            fuelPumps[laneNumber][i].inUse = true;
-            return { didFindPump: true, pumpIndex: i };
-        }
-    }
-    return { didFindPump: false, pumpIndex: null };
-}
-
-/**
  * This function fuels the cars tank, updates stats and sets inUse to false after vehicle is filled.
  */
 
 const fuelVehicle = (laneNumber, pumpIndex) => {
-    const refuelPace = 1000;
+    const refuelPaceInterval = 1000;
+    const refuelPace = 1.5 // 1.5 litres/second
 
     if (totalCarsInQueue.length > 0) {
         let totalLitersDispensedPerTransaction = 0;
@@ -45,9 +36,9 @@ const fuelVehicle = (laneNumber, pumpIndex) => {
 
         const interval = setInterval(() => {
             if (currentCarOutOfQueue.currentFuelInTank < currentCarOutOfQueue.tankCapacity) {
-                currentCarOutOfQueue.currentFuelInTank += 1; // 1.5 litres/second
-                totalFuelConsumed += 1.5;
-                totalLitersDispensedPerTransaction += 1.5
+                currentCarOutOfQueue.currentFuelInTank += refuelPace;
+                totalFuelConsumed += refuelPace;
+                totalLitersDispensedPerTransaction += refuelPace;
                 console.log(`${currentCarOutOfQueue.type}, ${currentCarOutOfQueue.fuelType} fuel in tank:`, currentCarOutOfQueue.currentFuelInTank);
 
             } else {
@@ -58,9 +49,24 @@ const fuelVehicle = (laneNumber, pumpIndex) => {
                 console.log(`Vehicle: ${currentCarOutOfQueue.type}, ${currentCarOutOfQueue.fuelType} re-fueled and left the station.`);
             }
 
-        }, refuelPace)
+        }, refuelPaceInterval)
 
     }
+}
+
+/**
+ *
+ * @param {*} laneNumber can be lane1, lane2 or lane3
+ * @returns  {didFindPump, pumpIndex} true and pump index if vehicle finds a free pump in lane otherwise returns false, null
+ */
+const checkAndUseEmptyPumpInLane = (laneNumber) => {
+    for (let i = 0; i < fuelPumps[laneNumber].length; i++) {
+        if (!fuelPumps[laneNumber][i].inUse) {
+            fuelPumps[laneNumber][i].inUse = true;
+            return { didFindPump: true, pumpIndex: i };
+        }
+    }
+    return { didFindPump: false, pumpIndex: null };
 }
 
 /**
@@ -91,6 +97,9 @@ const findFreePump = (carIndex) => {
     }, counterInMilliSeconds);
 }
 
+/**
+ * Creates Vehicles of random type and fuel type
+ */
 createVehicleAddToQueue = () => {
     const randomCarIndex = Math.floor(Math.random() * 3);
     const randomFuelTypeIndex = Math.floor((carTypes[randomCarIndex].fuelType.length - 1) * Math.random());
@@ -107,11 +116,13 @@ createVehicleAddToQueue = () => {
     console.log(totalCarsInQueue);
 }
 
-
+/**
+ * Starts petrol station forecourt simulation, creating a new Vehicle
+ * every 1500 - 2200 milliseconds if there are less than 5 vehicles in queue
+ */
 startSimulation = () => {
-    const randomVehicleCreationTime = Math.floor(Math.random() * (2200 - 1500 + 1)) + 1500;
+    const randomVehicleCreationTime = Math.floor(Math.random() * (2200 - 1500)) + 1500;
     const myInterval = setInterval(() => {
-        // create new vehicle if the queue has less that 5 cars in it
         if (totalCarsInQueue.length <= 4) createVehicleAddToQueue();
     }, randomVehicleCreationTime);
 }
@@ -127,12 +138,14 @@ const keypress = async () => {
 (async () => {
     console.log('program still running, press any key to stop execution');
     await keypress();
+    console.log('');
     console.log('------------------------');
     console.log('Petrol station report:');
     console.log('------------------------');
     console.log(`Total vehicles serviced: ${totalVehiclesServed}`);
     console.log(`Total vehicles left without service: ${totalVehiclesLeftWithoutService}`);
     console.log(`Total litres of fuel consumed: ${totalFuelConsumed}`);
+    console.log('');
     console.log('------------------------');
     console.log('List of all transactions:')
     console.log('------------------------');
