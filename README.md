@@ -3,7 +3,7 @@
 npm i
 npm start
 ```
-## Digital Space Software Candidate Challenge
+## Fuel pump task
 The automated demo app refers to a forecourt with nine fuel pumps arranged over three lanes. Each lane has three pumps, and a pump cannot serve more than one vehicle at a time, so there must be a queuing system in the forecourt (a vehicle using pump 3 prevents other vehicles accessing pumps 1 and 2 etc.).
 
 Pump 3 | Pump 2 | Pump 1
